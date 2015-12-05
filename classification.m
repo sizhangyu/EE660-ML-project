@@ -75,7 +75,7 @@ for i_lambda = 1:num_lambda
 end
 [err_val_logreg_lambda_bst, i_lambda_bst] = min(err_val_logreg_lambda); 
 % 0.2681
-
+model_logreg_lambda = logregFit(x_trn, y_trn, 'lambda', lambda(i_lambda_bst));
 toc
 
 % >> lambda does not help much
@@ -107,8 +107,8 @@ err_trn_SVM_gamma = zeros(num_gamma, 1);
 err_val_SVM_gamma = zeros(num_gamma, 1);
 for i_gamma = 1:num_gamma
     % Train the model
-    model_SVM_gamma = ...
-        svmFit(x_trn, y_trn, 'kernel', 'rbf', 'kernelParam', gamma(i_gamma));
+    model_SVM_gamma = svmFit(x_trn, y_trn, ...
+        'kernel', 'rbf', 'kernelParam', gamma(i_gamma));
     
     % Training error
     y_trn_SVM_est_gamma = svmPredict(model_SVM_gamma, x_trn);
@@ -129,8 +129,25 @@ for i_gamma = 1:num_gamma
 end
 [err_val_SVM_gamma_bst, i_gamma_bst] = min(err_val_SVM_gamma);
 % 0.1949
-
+model_SVM_gamma = svmFit(x_trn, y_trn, ...
+    'kernel', 'rbf', 'kernelParam', gamma(i_gamma_bst));
 toc
 
 % >> The model starts to overfit the training data as gamma increases
 % >> The kernel helps to reduce the validation error
+
+%% Random forest - simple attempt
+tic
+% Train the model
+model_RF = fitForest(x_trn, y_trn);
+
+% Training error
+y_trn_RF_est = predictForest(model_RF, x_trn);
+err_trn_RF = sum(abs(y_trn - y_trn_RF_est)/2)/num_trn; 
+% 0.0706
+
+% Validation error
+y_val_RF_est = predictForest(model_RF, x_val);
+err_val_RF = sum(abs(y_val - y_val_RF_est)/2)/num_val;
+% 0.1884
+toc
