@@ -78,6 +78,6 @@ for i_heur = 1:5
 
 end
 
-%% 
+%% Linear regression - with kernel
 
 

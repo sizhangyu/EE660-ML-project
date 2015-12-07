@@ -170,6 +170,56 @@ end
 % >> The model starts to overfit the training data as gamma increases
 % >> The kernel helps to reduce the validation error
 
+%% SVM - with rbf kernel and regularizer
+num_gamma = 21;
+num_C = 9;
+
+gamma = linspace(0, 1, num_gamma);
+C = linspace(1, 10, num_C);
+model_SVM_gamma = cell(5, 1);
+err_trn_SVM_gamma_C = zeros(num_gamma, num_C, 5);
+err_val_SVM_gamma_C = zeros(num_gamma, num_C, 5);
+err_trn_SVM_gamma_bst = zeros(1, 5);
+err_val_SVM_gamma_bst = zeros(1, 5);
+
+for i_heur = 1:5
+    tic
+    for i_gamma = 1:num_gamma
+        for i_C = 1:num_C
+            % Train the model
+            model_tmp = svmFit(x_trn, y_trn(:, i_heur), 'C', C(i_C),...
+                'kernel', 'rbf', 'kernelParam', gamma(i_gamma));
+
+            % Training error
+            y_trn_SVM_est_gamma = svmPredict(model_tmp, x_trn);
+            err_trn_SVM_gamma(i_gamma, i_C, i_heur) = ...
+                sum(abs(y_trn(:, i_heur) - y_trn_SVM_est_gamma)/2)/num_trn;
+
+            % Validation error
+            y_val_SVM_est_gamma = svmPredict(model_tmp, x_val);
+            err_val_SVM_gamma(i_gamma, i_C, i_heur) = ...
+                sum(abs(y_val(:, i_heur) - y_val_SVM_est_gamma)/2)/num_val;
+        end
+    end
+    
+    % Best training error
+    err_trn_SVM_gamma_bst(i_heur) = ...
+        min(min(err_trn_SVM_gamma(:, :, i_heur)));
+    
+    % Best validation error
+    [err_val_SVM_gamma_bst(i_heur), i_bst] = ...
+        min(min(err_val_SVM_gamma(:, :, i_heur)));
+    
+    [i_gamma_bst, i_C_bst] = ind2sub([num_gamma, num_C], i_bst);
+    model_SVM_gamma{i_heur} = svmFit(x_trn, y_trn(:, i_heur), ...
+        'C', C(i_C_bst), 'kernel', 'rbf', ...
+        'kernelParam', gamma(i_gamma_bst));
+    toc
+end
+% >> The model starts to overfit the training data as gamma increases
+% >> The kernel helps to reduce the validation error
+
+
 %% Random forest - simple attempt
 model_RF = cell(5, 1);
 err_trn_RF = zeros(1, 5);
@@ -198,28 +248,42 @@ end
 % >> The training is overfitting
 
 %% Random forest - avoid overfitting
-num_tree = 3;
+num_tree = 2;
 
 tree = [20, 80];
-err_trn_RF_tree = zeros(num_tree, 1);
-err_val_RF_tree = zeros(num_tree, 1);
-for i_tree = 1:num_tree
-    i_tree
-    tic
-    % Train the model
-    model_RF_tree = fitForest(x_trn, y_trn, 'ntrees', tree(i_tree));
-    
-    % Training error
-    y_trn_RF_tree_est = predictForest(model_RF_tree, x_trn);
-    err_trn_RF_tree(i_tree) = ...
-        sum(abs(y_trn - y_trn_RF_tree_est)/2)/num_trn;
-    
-    % Validation error
-    y_val_RF_tree_est = predictForest(model_RF_tree, x_val);
-    err_val_RF_tree(i_tree) = ...
-        sum(abs(y_val - y_val_RF_tree_est)/2)/num_val;
-    toc
-end
-[err_val_RF_tree_bst, i_tree_bst] = min(err_val_RF_tree);
+model_RF_tree = cell(5, 1);
+err_trn_RF_tree = zeros(num_tree, 5);
+err_val_RF_tree = zeros(num_tree, 5);
+err_trn_RF_tree_bst = zeros(1, 5);
+err_val_RF_tree_bst = zeros(1, 5);
+for i_heur = 1:5
+    i_heur
+    for i_tree = 1:num_tree
+        tic
+        % Train the model
+        model_tmp = ...
+            fitForest(x_trn, y_trn(:, i_heur), 'ntrees', tree(i_tree));
 
-model_RF_tree = fitForest(x_trn, y_trn, 'ntrees', tree(i_tree_bst));
+        % Training error
+        y_trn_RF_tree_est = predictForest(model_tmp, x_trn);
+        err_trn_RF_tree(i_tree, i_heur) = ...
+            sum(abs(y_trn(:, i_heur) - y_trn_RF_tree_est)/2)/num_trn;
+
+        % Validation error
+        y_val_RF_tree_est = predictForest(model_tmp, x_val);
+        err_val_RF_tree(i_tree, i_heur) = ...
+            sum(abs(y_val(:, i_heur) - y_val_RF_tree_est)/2)/num_val;
+        toc
+    end
+    
+    % Best training error
+    % 0.0407, 0.0369, 0.0345, 0.0397, 0.0381
+    err_trn_RF_tree_bst(i_heur) = min(err_trn_RF_tree(:, i_heur));
+    
+    % Best validation error
+    % 0.4879, 0.4568, 0.4850, 0.4647, 0.4706
+    [err_val_RF_tree_bst(i_heur), i_tree_bst] = ...
+        min(err_val_RF_tree(:, i_heur));
+    model_RF_tree{i_heur} = fitForest(x_trn, y_trn, 'ntrees', tree(i_tree_bst));
+end
+
