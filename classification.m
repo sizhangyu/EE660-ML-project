@@ -171,16 +171,16 @@ end
 % >> The kernel helps to reduce the validation error
 
 %% SVM - with rbf kernel and regularizer
-num_gamma = 21;
-num_C = 9;
+num_gamma = 5;
+num_C = 5;
 
-gamma = linspace(0, 1, num_gamma);
-C = linspace(1, 10, num_C);
+gamma = linspace(0, 20, num_gamma);
+C = linspace(0.001, 0.05, num_C);
 model_SVM_gamma = cell(5, 1);
 err_trn_SVM_gamma_C = zeros(num_gamma, num_C, 5);
 err_val_SVM_gamma_C = zeros(num_gamma, num_C, 5);
-err_trn_SVM_gamma_bst = zeros(1, 5);
-err_val_SVM_gamma_bst = zeros(1, 5);
+err_trn_SVM_gamma_C_bst = zeros(1, 5);
+err_val_SVM_gamma_C_bst = zeros(1, 5);
 
 for i_heur = 1:5
     tic
@@ -191,24 +191,26 @@ for i_heur = 1:5
                 'kernel', 'rbf', 'kernelParam', gamma(i_gamma));
 
             % Training error
-            y_trn_SVM_est_gamma = svmPredict(model_tmp, x_trn);
-            err_trn_SVM_gamma(i_gamma, i_C, i_heur) = ...
-                sum(abs(y_trn(:, i_heur) - y_trn_SVM_est_gamma)/2)/num_trn;
+            y_trn_SVM_est_gamma_C = svmPredict(model_tmp, x_trn);
+            err_trn_SVM_gamma_C(i_gamma, i_C, i_heur) = ...
+                sum(abs(y_trn(:, i_heur) - y_trn_SVM_est_gamma_C)/2)/num_trn;
 
             % Validation error
-            y_val_SVM_est_gamma = svmPredict(model_tmp, x_val);
-            err_val_SVM_gamma(i_gamma, i_C, i_heur) = ...
-                sum(abs(y_val(:, i_heur) - y_val_SVM_est_gamma)/2)/num_val;
+            y_val_SVM_est_gamma_C = svmPredict(model_tmp, x_val);
+            err_val_SVM_gamma_C(i_gamma, i_C, i_heur) = ...
+                sum(abs(y_val(:, i_heur) - y_val_SVM_est_gamma_C)/2)/num_val;
         end
     end
     
     % Best training error
-    err_trn_SVM_gamma_bst(i_heur) = ...
-        min(min(err_trn_SVM_gamma(:, :, i_heur)));
+    % 0.4861    0.4253    0.4516    0.4591    0.4310
+    err_trn_SVM_gamma_C_bst(i_heur) = ...
+        min(min(err_trn_SVM_gamma_C(:, :, i_heur)));
     
     % Best validation error
-    [err_val_SVM_gamma_bst(i_heur), i_bst] = ...
-        min(min(err_val_SVM_gamma(:, :, i_heur)));
+    % 0.4545    0.4137    0.4585    0.3882    0.4016
+    tmp = err_val_SVM_gamma_C(:, :, i_heur);
+    [err_val_SVM_gamma_C_bst(i_heur), i_bst] = min(tmp(:));
     
     [i_gamma_bst, i_C_bst] = ind2sub([num_gamma, num_C], i_bst);
     model_SVM_gamma{i_heur} = svmFit(x_trn, y_trn(:, i_heur), ...

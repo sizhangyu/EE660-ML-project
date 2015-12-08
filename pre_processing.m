@@ -15,12 +15,12 @@ num_trn = size(train, 1);
 num_val = size(validation, 1);
 num_tst = size(test, 1);
 
-%% PCA
+%% Classification
+% PCA
 S = svd(train(:, 1:51));
 semilogy(S)
 PCA_coef = ppca_matlab(train(:, 1:51), 46);
 
-%% Classification
 % Training data
 x_trn = train(:, 1:51) * PCA_coef;
 y_trn = zeros(num_trn, 5);
