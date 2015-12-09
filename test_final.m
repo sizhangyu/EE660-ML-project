@@ -7,6 +7,7 @@ close all
 % Models
 load model_SVM
 load model_SVM_gamma
+load model_SVM_gamma_C
 load model_ridgereg
 load model_RF
 load model_logreg
@@ -53,8 +54,8 @@ err5_tst_class = sum(abs(y_tst(:, 5) - y5_tst_class)/2)/num_tst;
 
 %% Regression
 % H1 - linear regression with polynomial kernel
-% 163.1017
-y1_tst_reg = linregPredict(model_linreg_ker{1}, x_tst_reg{1}*PCA_coef);
+% 283.6628
+y1_tst_reg = linregPredict(model_linreg_ker{1}, x_tst_reg{1}*PCA_coef{1});
 err1_tst_reg = norm(y_tst_reg{1} - y1_tst_reg)^2 / num_tst_reg(1);
 
 % H2 - linear regression with rbf kernel
@@ -76,5 +77,3 @@ err4_tst_reg = norm(y_tst_reg{4} - y4_tst_reg)^2 / num_tst_reg(4);
 % 154.0387
 y5_tst_reg = linregPredict(model_linreg_ker{5}, x_tst_reg{5});
 err5_tst_reg = norm(y_tst_reg{5} - y5_tst_reg)^2 / num_tst_reg(5);
-
-

@@ -139,6 +139,7 @@ degree = 5:5:30;
 
 num_deg = length(degree);
 model_linreg_pol = cell(5, 1);
+PCA_coef = cell(5, 1);
 err_trn_linreg_pol = zeros(num_deg, 5);
 err_val_linreg_pol = zeros(num_deg, 5);
 err_trn_linreg_pol_bst = zeros(1, 5);
@@ -148,24 +149,25 @@ pp.addOnes = true;
 
 for i_heur = 1:5
     tic
-    PCA_coef = ppca_matlab(x_trn_reg{i_heur}, 1);
+    PCA_coef{i_heur} = ppca_matlab(x_trn_reg{i_heur}, 1);
     
     for i_deg = 1:num_deg
         % Train the model
         pp.poly = degree(i_deg);
         model_tmp = ...
-        linregFit(x_trn_reg{i_heur}*PCA_coef, y_trn_reg{i_heur}, 'preproc', pp);
+        linregFit(x_trn_reg{i_heur}*PCA_coef{i_heur}, y_trn_reg{i_heur}, ...
+        'preproc', pp);
     
         % Training error
         y_trn_linreg_pol_est = ...
-            linregPredict(model_tmp, x_trn_reg{i_heur}*PCA_coef);
+            linregPredict(model_tmp, x_trn_reg{i_heur}*PCA_coef{i_heur});
         err_trn_linreg_pol(i_deg, i_heur) = ...
             norm(y_trn_reg{i_heur} - y_trn_linreg_pol_est)^2 ...
             / num_trn(i_heur);
 
         % Validation error
         y_val_linreg_pol_est = ...
-            linregPredict(model_tmp, x_val_reg{i_heur}*PCA_coef);
+            linregPredict(model_tmp, x_val_reg{i_heur}*PCA_coef{i_heur});
         err_val_linreg_pol(i_deg, i_heur) = ...
             norm(y_val_reg{i_heur} - y_val_linreg_pol_est)^2 ...
             / num_val(i_heur);
