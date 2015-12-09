@@ -185,16 +185,3 @@ for i_heur = 1:5
         'preproc', pp);  
     toc
 end
-
-%% Exponential model
-tic
-% options = optimset('MaxFunEvals', 1e6);
-xx_trn = [x_trn_reg{1}, ones(size(x_trn_reg{1},1),1)];
-xx_val = [x_val_reg{1}, ones(size(x_val_reg{1},1),1)];
-% theta_est = fminsearch(@(theta) exp_model(xx_trn, y_trn_reg{1}, theta), 10*ones(size(xx_trn,2),1));
-theta_est = EM_theta(xx_trn, y_trn_reg{1}, -20, 20);
-y_trn_est = 100*exp(-(xx_trn*theta_est));
-err_trn = sum((y_trn_reg{1} - y_trn_est).^2)/num_trn(1)
-y_val_est = 100*exp(-(xx_val*theta_est));
-err_val = sum((y_val_reg{1} - y_val_est).^2)/num_trn(1)
-toc

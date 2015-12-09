@@ -20,13 +20,13 @@ for i_heur = 1:5
     model_logreg{i_heur} = logregFit(x_trn, y_trn(:, i_heur));
 
     % Training error
-    % 0.3325, 0.3191, 0.3024, 0.3330, 0.3158
+    % 0.3341    0.3194    0.3024    0.3331    0.3155
     y_trn_logreg_est = logregPredict(model_logreg{i_heur}, x_trn);
     err_trn_logreg(i_heur) = ...
         sum(abs(y_trn(:, i_heur) - y_trn_logreg_est)/2)/num_trn; 
     
     % Validation error
-    % 0.5190, 0.4859, 0.5033, 0.5082, 0.5092
+    % 0.5190    0.4869    0.5026    0.5069    0.5092
     y_val_logreg_est = logregPredict(model_logreg{i_heur}, x_val);
     err_val_logreg(i_heur) = ...
         sum(abs(y_val(:, i_heur) - y_val_logreg_est)/2)/num_val; 
@@ -46,13 +46,13 @@ for i_heur = 1:5
         logregFit(x_trn, y_trn(:, i_heur), 'regType', 'L1');
 
     % Training error
-    % 0.3334, 0.3192, 0.3024, 0.3330, 0.3158
+    % 0.3331    0.3194    0.3024    0.3328    0.3164
     y_trn_logreg_est_l1 = logregPredict(model_logreg_l1{i_heur}, x_trn);
     err_trn_logreg_l1(i_heur) = ...
         sum(abs(y_trn(:, i_heur) - y_trn_logreg_est_l1)/2)/num_trn; 
 
     % Validation error
-    % 0.5203, 0.4872, 0.5052, 0.5062, 0.5098
+    % 0.5193    0.4869    0.5026    0.5078    0.5098
     y_val_logreg_est_l1 = logregPredict(model_logreg_l1{i_heur}, x_val);
     err_val_logreg_l1(i_heur) = ...
         sum(abs(y_val(:, i_heur) - y_val_logreg_est_l1)/2)/num_val; 
@@ -89,11 +89,11 @@ for i_heur = 1:5
             sum(abs(y_val(:, i_heur) - y_val_logreg_est_lambda)/2)/num_val; 
     end
     % Best training error
-    % 0.3290, 0.3158, 0.3016, 0.3320, 0.3158
+    % 0.3341    0.3186    0.3021    0.3331    0.3153
     err_trn_logreg_lambda_bst(i_heur) = min(err_trn_logreg_lambda(:, i_heur)); 
     
     % Best validation error
-    % 0.5160, 0.4859, 0.5026, 0.5046, 0.5029
+    % 0.5177    0.4814    0.5026    0.5059    0.5075
     [err_val_logreg_lambda_bst(i_heur), i_lambda_bst] = ...
         min(err_val_logreg_lambda(:, i_heur)); 
     model_logreg_lambda{i_heur} = ...
@@ -176,7 +176,7 @@ num_C = 5;
 
 gamma = linspace(0, 20, num_gamma);
 C = linspace(0.001, 0.05, num_C);
-model_SVM_gamma = cell(5, 1);
+model_SVM_gamma_C = cell(5, 1);
 err_trn_SVM_gamma_C = zeros(num_gamma, num_C, 5);
 err_val_SVM_gamma_C = zeros(num_gamma, num_C, 5);
 err_trn_SVM_gamma_C_bst = zeros(1, 5);
@@ -203,7 +203,7 @@ for i_heur = 1:5
     end
     
     % Best training error
-    % 0.4861    0.4253    0.4516    0.4591    0.4310
+    % 0.3263    0.3429    0.2999    0.3594    0.3483
     err_trn_SVM_gamma_C_bst(i_heur) = ...
         min(min(err_trn_SVM_gamma_C(:, :, i_heur)));
     
@@ -213,7 +213,7 @@ for i_heur = 1:5
     [err_val_SVM_gamma_C_bst(i_heur), i_bst] = min(tmp(:));
     
     [i_gamma_bst, i_C_bst] = ind2sub([num_gamma, num_C], i_bst);
-    model_SVM_gamma{i_heur} = svmFit(x_trn, y_trn(:, i_heur), ...
+    model_SVM_gamma_C{i_heur} = svmFit(x_trn, y_trn(:, i_heur), ...
         'C', C(i_C_bst), 'kernel', 'rbf', ...
         'kernelParam', gamma(i_gamma_bst));
     toc
@@ -249,43 +249,43 @@ end
 
 % >> The training is overfitting
 
-%% Random forest - avoid overfitting
-num_tree = 2;
-
-tree = [20, 80];
-model_RF_tree = cell(5, 1);
-err_trn_RF_tree = zeros(num_tree, 5);
-err_val_RF_tree = zeros(num_tree, 5);
-err_trn_RF_tree_bst = zeros(1, 5);
-err_val_RF_tree_bst = zeros(1, 5);
-for i_heur = 1:5
-    i_heur
-    for i_tree = 1:num_tree
-        tic
-        % Train the model
-        model_tmp = ...
-            fitForest(x_trn, y_trn(:, i_heur), 'ntrees', tree(i_tree));
-
-        % Training error
-        y_trn_RF_tree_est = predictForest(model_tmp, x_trn);
-        err_trn_RF_tree(i_tree, i_heur) = ...
-            sum(abs(y_trn(:, i_heur) - y_trn_RF_tree_est)/2)/num_trn;
-
-        % Validation error
-        y_val_RF_tree_est = predictForest(model_tmp, x_val);
-        err_val_RF_tree(i_tree, i_heur) = ...
-            sum(abs(y_val(:, i_heur) - y_val_RF_tree_est)/2)/num_val;
-        toc
-    end
-    
-    % Best training error
-    % 0.0407, 0.0369, 0.0345, 0.0397, 0.0381
-    err_trn_RF_tree_bst(i_heur) = min(err_trn_RF_tree(:, i_heur));
-    
-    % Best validation error
-    % 0.4879, 0.4568, 0.4850, 0.4647, 0.4706
-    [err_val_RF_tree_bst(i_heur), i_tree_bst] = ...
-        min(err_val_RF_tree(:, i_heur));
-    model_RF_tree{i_heur} = fitForest(x_trn, y_trn, 'ntrees', tree(i_tree_bst));
-end
+%% Random forest - number of trees
+% num_tree = 2;
+% 
+% tree = [20, 80];
+% model_RF_tree = cell(5, 1);
+% err_trn_RF_tree = zeros(num_tree, 5);
+% err_val_RF_tree = zeros(num_tree, 5);
+% err_trn_RF_tree_bst = zeros(1, 5);
+% err_val_RF_tree_bst = zeros(1, 5);
+% for i_heur = 1:5
+%     i_heur
+%     for i_tree = 1:num_tree
+%         tic
+%         % Train the model
+%         model_tmp = ...
+%             fitForest(x_trn, y_trn(:, i_heur), 'ntrees', tree(i_tree));
+% 
+%         % Training error
+%         y_trn_RF_tree_est = predictForest(model_tmp, x_trn);
+%         err_trn_RF_tree(i_tree, i_heur) = ...
+%             sum(abs(y_trn(:, i_heur) - y_trn_RF_tree_est)/2)/num_trn;
+% 
+%         % Validation error
+%         y_val_RF_tree_est = predictForest(model_tmp, x_val);
+%         err_val_RF_tree(i_tree, i_heur) = ...
+%             sum(abs(y_val(:, i_heur) - y_val_RF_tree_est)/2)/num_val;
+%         toc
+%     end
+%     
+%     % Best training error
+%     % 0.0407, 0.0369, 0.0345, 0.0397, 0.0381
+%     err_trn_RF_tree_bst(i_heur) = min(err_trn_RF_tree(:, i_heur));
+%     
+%     % Best validation error
+%     % 0.4879, 0.4568, 0.4850, 0.4647, 0.4706
+%     [err_val_RF_tree_bst(i_heur), i_tree_bst] = ...
+%         min(err_val_RF_tree(:, i_heur));
+%     model_RF_tree{i_heur} = fitForest(x_trn, y_trn, 'ntrees', tree(i_tree_bst));
+% end
 
